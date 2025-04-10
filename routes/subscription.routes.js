@@ -7,6 +7,9 @@ import {
 
 const subscriptionRouter = Router();
 
+//dummy routes for testing purposes
+// subscriptionRouter.get('/',(req,res) => res.send({title:"get subscriptions"}))
+
 subscriptionRouter.get('/', (req, res) => res.send({ title: 'GET all subscriptions' }));
 
 subscriptionRouter.get('/:id', (req, res) => res.send({ title: 'GET subscription details' }));

@@ -5,6 +5,9 @@ import { getUser, getUsers } from '../controllers/user.controller.js'
 
 const userRouter = Router();
 
+//dummy routes for testing purposes
+// userRouter.get('/',(req,res) => res.send({title:"get users"}))
+
 userRouter.get('/', getUsers);
 
 userRouter.get('/:id', authorize, getUser);
