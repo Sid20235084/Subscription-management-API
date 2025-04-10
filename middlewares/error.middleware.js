@@ -1,7 +1,7 @@
 // Global Error Handling Middleware for Express.js apps
 // Catches errors thrown in routes, controllers, or other middleware
 // and formats them into a user-friendly JSON response.
-
+// in the error middleware we are intercepting the error and trying to know more about it so that we can handle it properly
 const errorMiddleware = (err, req, res, next) => {
   try {
     // Create a shallow copy of the error object
