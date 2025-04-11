@@ -26,6 +26,8 @@ export const createSubscription = async (req, res, next) => {
   }
 }
 
+
+//gets all the subscriptions of a particular user by sending its id in header as parameter 
 export const getUserSubscriptions = async (req, res, next) => {
   try {
     // Check if the user is the same as the one in the token

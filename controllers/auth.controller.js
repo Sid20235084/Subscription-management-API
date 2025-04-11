@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-
+import redisClient from "../config/redis.client.js"
 import User from "../models/user.model.js";
 import { JWT_SECRET, JWT_EXPIRES_IN } from "../config/env.js";
 
@@ -74,15 +74,15 @@ export const signIn = async (req, res, next) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      const error = new Error("User not found");
+      const error = new Error("Invalid Username or Password");
       error.statusCode = 404;
       throw error;
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await bcrypt.compare(password, user.password); // bcrypt.compare() is used to compare the plain text password with the hashed password stored in the database.
 
     if (!isPasswordValid) {
-      const error = new Error("Invalid password");
+      const error = new Error("Invalid Username or Password");
       error.statusCode = 401;
       throw error;
     }
@@ -104,4 +104,147 @@ export const signIn = async (req, res, next) => {
   }
 };
 
-export const signOut = async (req, res, next) => {};
+//Client handled JWT Sign Out;
+
+// export const signOut = async (req, res, next) => {
+//   try {
+//     // Since JWTs are stateless, we don't need to do much on the server.
+//     // Just instruct the frontend to clear the token.
+//     res.status(200).json({
+//       success: true,
+//       message: "User signed out successfully",
+//     });
+//   } catch (error) {
+//     next(error);
+//   }
+// };
+
+
+
+
+//server side signout handling;
+
+
+export const signOut = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      return res.status(400).json({ message: "No token found" });
+    }
+
+    const decoded = jwt.decode(token);
+    const expiresInSec = 60*60*24; // 1 day in seconds
+    // Store the token in Redis with an expiration time
+
+    await redisClient.set(token, "blacklisted", "EX:", expiresInSec);
+
+    res.status(200).json({ success: true, message: "User signed out successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// HTTP Authorization Header Explained
+
+/*
+  ✅ What is the Authorization Header?
+
+  The Authorization header is part of HTTP metadata. It carries authentication credentials —
+  most commonly, a JWT (JSON Web Token) — so the backend can identify and authorize the client.
+
+  Example:
+    Authorization: Bearer <your_token_here>
+
+  This is used in APIs where users log in and receive a token to access protected resources.
+*/
+
+/*
+  🔐 Common Format for JWT:
+
+  When using JWTs (Bearer Tokens), the Authorization header typically looks like:
+
+    Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+  - "Bearer" is the authentication scheme.
+  - The token follows the scheme after a space.
+*/
+
+/*
+  💡 How the Flow Works:
+
+  1. Frontend: User logs in and gets a token (JWT).
+  2. Frontend: Sends a request to a protected API route and attaches the token:
+
+     fetch('/api/protected', {
+       headers: {
+         Authorization: `Bearer ${token}`,
+       },
+     });
+
+  3. Backend: Middleware reads the Authorization header:
+     - Extracts the token.
+     - Verifies it's valid and not blacklisted.
+     - Grants access to protected data.
+*/
+
+/*
+  ✅ What is Metadata in an HTTP Request?
+
+  Metadata = data *about* the request — not the main content.
+  It's used to give the server context on how to handle the request.
+
+  🔍 Examples of HTTP Headers (Metadata):
+
+    - Content-Type: type of the request body (e.g., application/json)
+    - Authorization: contains login credentials like JWT
+    - User-Agent: info about the client's browser or app
+    - Accept: what kind of responses the client can handle
+    - Host: domain of the request
+    - Content-Length: size of the body in bytes
+*/
+
+/*
+  🧠 Example HTTP Request with Metadata:
+
+    POST /dashboard HTTP/1.1
+    Host: api.example.com
+    Authorization: Bearer eyJhbGciOiJIUzI1...
+    Content-Type: application/json
+
+    Body:
+    {
+      "data": "user info or something else"
+    }
+
+  ➤ The Authorization header is part of the metadata — it's not the main data (body), but info
+    that the server uses to know how to handle the request.
+*/
+
+
+
+
+
+
+
+
