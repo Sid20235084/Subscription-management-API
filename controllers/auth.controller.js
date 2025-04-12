@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import redisClient from "../config/redis.client.js"
+import redisClient from "../config/redis.client.js";
 import User from "../models/user.model.js";
 import { JWT_SECRET, JWT_EXPIRES_IN } from "../config/env.js";
 
@@ -47,7 +47,6 @@ export const signUp = async (req, res, next) => {
     // - The frontend will then redirect the user to the login page.
     // - During login, we verify the user's credentials and *then* generate the JWT token.
     // - This is useful when you want the user to verify their email or manually confirm their login before accessing protected features.
-    
 
     await session.commitTransaction();
     session.endSession();
@@ -119,11 +118,7 @@ export const signIn = async (req, res, next) => {
 //   }
 // };
 
-
-
-
 //server side signout handling;
-
 
 export const signOut = async (req, res, next) => {
   try {
@@ -134,36 +129,18 @@ export const signOut = async (req, res, next) => {
     }
 
     const decoded = jwt.decode(token);
-    const expiresInSec = 60*60*24; // 1 day in seconds
+    const expiresInSec = 60 * 60 * 24; // 1 day in seconds
     // Store the token in Redis with an expiration time
 
-    await redisClient.set(token, "blacklisted", "EX:", expiresInSec);
+    await redisClient.set(token, "blacklisted", "EX", expiresInSec);
 
-    res.status(200).json({ success: true, message: "User signed out successfully" });
+    res
+      .status(200)
+      .json({ success: true, message: "User signed out successfully" });
   } catch (error) {
     next(error);
   }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // HTTP Authorization Header Explained
 
@@ -240,11 +217,3 @@ export const signOut = async (req, res, next) => {
   ➤ The Authorization header is part of the metadata — it's not the main data (body), but info
     that the server uses to know how to handle the request.
 */
-
-
-
-
-
-
-
-

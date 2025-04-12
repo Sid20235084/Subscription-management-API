@@ -1,29 +1,37 @@
-import { Router } from 'express';
-import authorize from '../middlewares/auth.middleware.js'
+import { Router } from "express";
+import authorize from "../middlewares/auth.middleware.js";
 import {
   createSubscription,
+  getAllSubscription,
+  getSubscriptionDetails,
+  updateSubscription,
+  deleteSubscription,
+  cancelSubscription,
   getUserSubscriptions,
-} from '../controllers/subscription.controller.js'
+  upcomingRenewals,
+} from "../controllers/subscription.controller.js";
+import isAdmin from "../middlewares/admin.middleware.js";
 
 const subscriptionRouter = Router();
 
-//dummy routes for testing purposes
-// subscriptionRouter.get('/',(req,res) => res.send({title:"get subscriptions"}))
+// GET /api/subscriptions - Only admins may access all subscriptions
+subscriptionRouter.get("/", authorize, isAdmin, getAllSubscription);
 
-subscriptionRouter.get('/', (req, res) => res.send({ title: 'GET all subscriptions' })); //only for admins ,gets list of all the subscriptions along with their creator details 
+// ✅ Place static routes BEFORE dynamic `/:id`
+subscriptionRouter.get("/upcoming-renewals", authorize, upcomingRenewals);
+subscriptionRouter.get("/user/:id", authorize, getUserSubscriptions);
+subscriptionRouter.put("/:id/cancel", authorize, cancelSubscription);
 
-subscriptionRouter.get('/:id', (req, res) => res.send({ title: 'GET subscription details' }));
+// GET /api/subscriptions/:id - Get details of a subscription by its ID
+subscriptionRouter.get("/:id", authorize, getSubscriptionDetails);
 
-subscriptionRouter.post('/', authorize, createSubscription);
+// POST /api/subscriptions - Create a new subscription (logged-in users only)
+subscriptionRouter.post("/", authorize, createSubscription);
 
-subscriptionRouter.put('/:id', (req, res) => res.send({ title: 'UPDATE subscription' }));
+// PUT /api/subscriptions/:id - Update a subscription (accessible by owner or admin)
+subscriptionRouter.put("/:id", authorize, updateSubscription);
 
-subscriptionRouter.delete('/:id', (req, res) => res.send({ title: 'DELETE subscription' }));
-
-subscriptionRouter.get('/user/:id', authorize, getUserSubscriptions);
-
-subscriptionRouter.put('/:id/cancel', (req, res) => res.send({ title: 'CANCEL subscription' }));
-
-subscriptionRouter.get('/upcoming-renewals', (req, res) => res.send({ title: 'GET upcoming renewals' }));
+// DELETE /api/subscriptions/:id - Delete a subscription (accessible by owner or admin)
+subscriptionRouter.delete("/:id", authorize, deleteSubscription);
 
 export default subscriptionRouter;
